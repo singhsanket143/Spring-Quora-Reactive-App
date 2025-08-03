@@ -2,6 +2,8 @@ package com.example.demo.services;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.adapter.QuestionAdapter;
@@ -9,8 +11,10 @@ import com.example.demo.dto.QuestionRequestDTO;
 import com.example.demo.dto.QuestionResponseDTO;
 import com.example.demo.models.Question;
 import com.example.demo.repositories.QuestionRepository;
+import com.example.demo.utils.CursorUtils;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -33,5 +37,33 @@ public class QuestionService implements IQuestionService {
         .map(QuestionAdapter::toQuestionResponseDTO)
         .doOnSuccess(response -> System.out.println("Question created successfully: " + response))
         .doOnError(error -> System.out.println("Error creating question: " + error));
+    }
+
+    @Override
+    public Flux<QuestionResponseDTO> searchQuestions(String searchTerm, int offset, int page) {
+        return questionRepository.findByTitleOrContentContainingIgnoreCase(searchTerm, PageRequest.of(offset, page))
+        .map(QuestionAdapter::toQuestionResponseDTO)
+        .doOnError(error -> System.out.println("Error searching questions: " + error))
+        .doOnComplete(() -> System.out.println("Questions searched successfully"));
+    }
+
+    @Override
+    public Flux<QuestionResponseDTO> getAllQuestions(String cursor, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+
+        if(!CursorUtils.isValidCursor(cursor)) {
+            return questionRepository.findTop10ByOrderByCreatedAtAsc()
+            .take(size)
+            .map(QuestionAdapter::toQuestionResponseDTO)
+            .doOnError(error -> System.out.println("Error fetching questions: " + error))
+            .doOnComplete(() -> System.out.println("Questions fetched successfully"));
+        } else {
+            LocalDateTime cursorTimeStamp = CursorUtils.parseCursor(cursor);
+            return questionRepository.findByCreatedAtGreaterThanOrderByCreatedAtAsc(cursorTimeStamp, pageable)
+            .map(QuestionAdapter::toQuestionResponseDTO)
+            .doOnError(error -> System.out.println("Error fetching questions: " + error))
+            .doOnComplete(() -> System.out.println("Questions fetched successfully"));
+        }
+
     }
 }

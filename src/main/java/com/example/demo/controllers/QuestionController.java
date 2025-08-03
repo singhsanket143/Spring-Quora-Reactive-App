@@ -40,8 +40,13 @@ public class QuestionController {
     }
 
     @GetMapping()
-    public Flux<QuestionResponseDTO> getAllQuestions() {
-        throw new UnsupportedOperationException("Not implemented");
+    public Flux<QuestionResponseDTO> getAllQuestions(
+        @RequestParam(required = false) String cursor,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        return questionService.getAllQuestions(cursor, size)
+        .doOnError(error -> System.out.println("Error fetching questions: " + error))
+        .doOnComplete(() -> System.out.println("Questions fetched successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -55,7 +60,7 @@ public class QuestionController {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
-        throw new UnsupportedOperationException("Not implemented");
+        return questionService.searchQuestions(query, page, size);
     }
     
     @GetMapping("/tag/{tag}")
