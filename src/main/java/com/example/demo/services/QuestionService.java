@@ -2,6 +2,7 @@ package com.example.demo.services;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.adapter.QuestionAdapter;
@@ -19,30 +20,30 @@ import reactor.core.publisher.Mono;
 public class QuestionService implements IQuestionService {
 
     private final QuestionRepository questionRepository;
-    
+
     @Override
     public Mono<QuestionResponseDTO> createQuestion(QuestionRequestDTO questionRequestDTO) {
 
         Question question = Question.builder()
-            .title(questionRequestDTO.getTitle())
-            .content(questionRequestDTO.getContent())
-            .createdAt(LocalDateTime.now())
-            .updatedAt(LocalDateTime.now())
-            .build();
+                .title(questionRequestDTO.getTitle())
+                .content(questionRequestDTO.getContent())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
         return questionRepository.save(question)
-        .map(QuestionAdapter::toQuestionResponseDTO)
-        .doOnSuccess(response -> System.out.println("Question created successfully: " + response))
-        .doOnError(error -> System.out.println("Error creating question: " + error));
+                .map(QuestionAdapter::toQuestionResponseDTO)
+                .doOnSuccess(response -> System.out.println("Question created successfully: " + response))
+                .doOnError(error -> System.out.println("Error creating question: " + error));
     }
 
     @Override
     public Mono<QuestionResponseDTO> getQuestionById(String id) {
         return questionRepository.findById(id)
-            .map(QuestionAdapter::toQuestionResponseDTO)
-            .doOnSuccess(response -> System.out.println("Question retrieved successfully: " + response))
-            .doOnError(error -> System.out.println("Error retrieving question: " + error))
-            .switchIfEmpty(Mono.error(new RuntimeException("Question not found with id: " + id)));
+                .map(QuestionAdapter::toQuestionResponseDTO)
+                .doOnSuccess(response -> System.out.println("Question retrieved successfully: " + response))
+                .doOnError(error -> System.out.println("Error retrieving question: " + error))
+                .switchIfEmpty(Mono.error(new RuntimeException("Question not found with id: " + id)));
     }
 
     @Override
@@ -60,5 +61,12 @@ public class QuestionService implements IQuestionService {
                 .then();
     }
 
+    @Override
+    public Flux<QuestionResponseDTO> searchQuestions(String searchTerm, int offset, int page) {
+        return questionRepository.findByTitleOrContentContainingIgnoreCase(searchTerm, PageRequest.of(offset, page))
+                .map(QuestionAdapter::toQuestionResponseDTO)
+                .doOnError(error -> System.out.println("Error retrieving search results: " + error))
+                .doOnComplete(() -> System.out.println("Search results retrieved successfully."));
+    }
 
 }

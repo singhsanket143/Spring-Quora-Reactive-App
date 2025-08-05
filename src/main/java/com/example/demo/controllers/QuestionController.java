@@ -61,7 +61,9 @@ public class QuestionController {
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ) {
-        throw new UnsupportedOperationException("Not implemented");
+        return questionService.searchQuestions(query, page, size)
+                .doOnError(error -> System.out.println("Error retrieving search results: " + error))
+                .doOnComplete(() -> System.out.println("Search results retrieved successfully."));
     }
     
     @GetMapping("/tag/{tag}")

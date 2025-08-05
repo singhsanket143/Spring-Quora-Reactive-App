@@ -16,4 +16,6 @@ public interface IQuestionService {
     Flux<QuestionResponseDTO> getAllQuestions();
 
     Mono<Void> deleteQuestionById(String id);
+
+    Flux<QuestionResponseDTO> searchQuestions(String searchTerm, int offset, int page);
 }
