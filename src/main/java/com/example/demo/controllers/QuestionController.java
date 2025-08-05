@@ -50,7 +50,9 @@ public class QuestionController {
 
     @DeleteMapping("/{id}")
     public Mono<Void> deleteQuestionById(@PathVariable String id) {
-        throw new UnsupportedOperationException("Not implemented");
+        return questionService.deleteQuestionById(id)
+            .doOnSuccess(aVoid -> System.out.println("Question deleted successfully with id: " + id))
+            .doOnError(error -> System.out.println("Error deleting question: " + error));
     }
 
     @GetMapping("/search")

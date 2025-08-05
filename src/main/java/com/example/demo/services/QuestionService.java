@@ -53,6 +53,12 @@ public class QuestionService implements IQuestionService {
                 .doOnError(error -> System.out.println("Error retrieving questions: " + error));
     }
 
+    @Override
+    public Mono<Void> deleteQuestionById(String id) {
+        return questionRepository.deleteById(id).doOnSuccess(aVoid -> System.out.println("Question deleted successfully with id: " + id))
+                .doOnError(error -> System.out.println("Error deleting question: " + error))
+                .then();
+    }
 
 
 }
