@@ -42,10 +42,13 @@ public class QuestionController {
     }
 
     @GetMapping()
-    public Flux<QuestionResponseDTO> getAllQuestions() {
-        return questionService.getAllQuestions()
-            .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
-            .doOnError(error -> System.out.println("Error retrieving questions: " + error));
+    public Flux<QuestionResponseDTO> getAllQuestions(
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return questionService.getAllQuestions(cursor, size)
+                .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
+                .doOnError(error -> System.out.println("Error retrieving questions: " + error));
     }
 
     @DeleteMapping("/{id}")

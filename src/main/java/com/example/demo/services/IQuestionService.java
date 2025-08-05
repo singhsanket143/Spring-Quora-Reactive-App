@@ -13,7 +13,7 @@ public interface IQuestionService {
 
     Mono<QuestionResponseDTO> getQuestionById(String id);
 
-    Flux<QuestionResponseDTO> getAllQuestions();
+    Flux<QuestionResponseDTO> getAllQuestions(String cursor, int size);
 
     Mono<Void> deleteQuestionById(String id);
 

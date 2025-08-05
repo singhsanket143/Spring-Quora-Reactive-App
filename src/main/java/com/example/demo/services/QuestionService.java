@@ -2,7 +2,9 @@ package com.example.demo.services;
 
 import java.time.LocalDateTime;
 
+import com.example.demo.utils.CursorUtils;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.adapter.QuestionAdapter;
@@ -47,11 +49,26 @@ public class QuestionService implements IQuestionService {
     }
 
     @Override
-    public Flux<QuestionResponseDTO> getAllQuestions() {
-        return questionRepository.findAll()
-                .map(QuestionAdapter::toQuestionResponseDTO)
-                .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
-                .doOnError(error -> System.out.println("Error retrieving questions: " + error));
+    public Flux<QuestionResponseDTO> getAllQuestions(String cursor, int size) {
+        Pageable pagable = PageRequest.of(0, size);
+        if(!CursorUtils.isValidCursor(cursor))
+        {
+            return questionRepository.findTop10ByOrderByCreatedAtAsc()
+                    .take(size)
+                    .map(QuestionAdapter::toQuestionResponseDTO)
+                    .doOnError(error -> System.out.println("Error retrieving questions: " + error))
+                    .doOnComplete(() -> System.out.println("Questions retrieved successfully."));
+        }
+        else {
+            LocalDateTime cursorDateTime = CursorUtils.parseCursor(cursor);
+            return questionRepository.findByCreatedAtGreaterThanOrderByCreatedAt(cursorDateTime,pagable)
+                    .map(QuestionAdapter::toQuestionResponseDTO)
+                    .doOnError(error -> System.out.println("Error retrieving questions: " + error))
+                    .doOnComplete(() -> System.out.println("Questions retrieved successfully."));
+
+
+        }
+
     }
 
     @Override

@@ -11,6 +11,7 @@ import com.example.demo.models.Question;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -19,4 +20,9 @@ public interface QuestionRepository extends ReactiveMongoRepository<Question, St
 
     @Query("{'$or' : [{'title': {$regex: ?0,$options: 'i'}},{'content': {$regex: ?0,$options: 'i'}}] }")
     Flux<Question> findByTitleOrContentContainingIgnoreCase(String searchTerm, Pageable pagable);
+
+
+    Flux<Question> findByCreatedAtGreaterThanOrderByCreatedAt(LocalDateTime cursorDateTime, Pageable pagable);
+
+    Flux<Question> findTop10ByOrderByCreatedAtAsc ();
 }
