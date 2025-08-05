@@ -34,4 +34,15 @@ public class QuestionService implements IQuestionService {
         .doOnSuccess(response -> System.out.println("Question created successfully: " + response))
         .doOnError(error -> System.out.println("Error creating question: " + error));
     }
+
+    @Override
+    public Mono<QuestionResponseDTO> getQuestionById(String id) {
+        return questionRepository.findById(id)
+            .map(QuestionAdapter::toQuestionResponseDTO)
+            .doOnSuccess(response -> System.out.println("Question retrieved successfully: " + response))
+            .doOnError(error -> System.out.println("Error retrieving question: " + error))
+            .switchIfEmpty(Mono.error(new RuntimeException("Question not found with id: " + id)));
+    }
+
+
 }
