@@ -43,7 +43,9 @@ public class QuestionController {
 
     @GetMapping()
     public Flux<QuestionResponseDTO> getAllQuestions() {
-        throw new UnsupportedOperationException("Not implemented");
+        return questionService.getAllQuestions()
+            .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
+            .doOnError(error -> System.out.println("Error retrieving questions: " + error));
     }
 
     @DeleteMapping("/{id}")

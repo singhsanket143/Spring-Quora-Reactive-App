@@ -11,6 +11,7 @@ import com.example.demo.models.Question;
 import com.example.demo.repositories.QuestionRepository;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -43,6 +44,15 @@ public class QuestionService implements IQuestionService {
             .doOnError(error -> System.out.println("Error retrieving question: " + error))
             .switchIfEmpty(Mono.error(new RuntimeException("Question not found with id: " + id)));
     }
+
+    @Override
+    public Flux<QuestionResponseDTO> getAllQuestions() {
+        return questionRepository.findAll()
+                .map(QuestionAdapter::toQuestionResponseDTO)
+                .doOnNext(response -> System.out.println("Questions retrieved successfully: " + response))
+                .doOnError(error -> System.out.println("Error retrieving questions: " + error));
+    }
+
 
 
 }
