@@ -1,6 +1,7 @@
 package com.example.demo.services;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +12,9 @@ import com.example.demo.dto.QuestionRequestDTO;
 import com.example.demo.dto.QuestionResponseDTO;
 import com.example.demo.events.ViewCountEvent;
 import com.example.demo.models.Question;
+import com.example.demo.models.QuestionElasticDocument;
 import com.example.demo.producers.KafkaEventProducer;
+import com.example.demo.repositories.QuestionDocumentRepository;
 import com.example.demo.repositories.QuestionRepository;
 import com.example.demo.utils.CursorUtils;
 
@@ -26,6 +29,10 @@ public class QuestionService implements IQuestionService {
     private final QuestionRepository questionRepository;
 
     private final KafkaEventProducer kafkaEventProducer;
+
+    private final IQuestionIndexService questionIndexService;
+
+    private final QuestionDocumentRepository questionDocumentRepository;
     
     @Override
     public Mono<QuestionResponseDTO> createQuestion(QuestionRequestDTO questionRequestDTO) {
@@ -38,7 +45,10 @@ public class QuestionService implements IQuestionService {
             .build();
 
         return questionRepository.save(question)
-        .map(QuestionAdapter::toQuestionResponseDTO)
+        .map(savedQuestion -> {
+            questionIndexService.createQuestionIndex(savedQuestion); // dumping the question to elasticsearch
+            return QuestionAdapter.toQuestionResponseDTO(savedQuestion);
+        })
         .doOnSuccess(response -> System.out.println("Question created successfully: " + response))
         .doOnError(error -> System.out.println("Error creating question: " + error));
     }
@@ -81,5 +91,9 @@ public class QuestionService implements IQuestionService {
             ViewCountEvent viewCountEvent = new ViewCountEvent(id, "question", LocalDateTime.now());
             kafkaEventProducer.publishViewCountEvent(viewCountEvent);
         });
+    }
+
+    public List<QuestionElasticDocument> searchQuestionsByElasticsearch(String query) {
+        return questionDocumentRepository.findByTitleContainingOrContentContaining(query, query);
     }
 }

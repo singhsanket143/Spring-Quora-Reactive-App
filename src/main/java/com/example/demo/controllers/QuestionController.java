@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.QuestionRequestDTO;
 import com.example.demo.dto.QuestionResponseDTO;
+import com.example.demo.models.QuestionElasticDocument;
 import com.example.demo.services.IQuestionService;
 
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,9 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -71,6 +75,12 @@ public class QuestionController {
         @RequestParam(defaultValue = "10") int size
     ) {
         throw new UnsupportedOperationException("Not implemented");
+    }
+
+
+    @GetMapping("/elasticsearch")
+    public List<QuestionElasticDocument> searchQuestionsByElasticsearch(@RequestParam String query) {
+        return questionService.searchQuestionsByElasticsearch(query);
     }
 
     
