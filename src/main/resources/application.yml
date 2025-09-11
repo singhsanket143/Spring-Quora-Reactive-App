@@ -3,7 +3,7 @@ spring:
     name: QuoraApp
 
 server:
-  port: 9090
+  port: 9091
   data:
     mongodb:
       host: localhost
