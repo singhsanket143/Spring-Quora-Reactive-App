@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quora-app-config
+  namespace: quora
+  labels:
+    app: quora-app
+data:
+  MONGODB_HOST: mongodb-service
+  MONGODB_PORT: "27017"
+  MONGODB_DATABASE: quora_db
+  ELASTICSEARCH_URIS: http://elasticsearch-service:9200
+  KAFKA_BOOTSTRAP_SERVERS: kafka-service:9092
+  KAFKA_CONSUMER_GROUP_ID: view-count-consumer
+  SERVER_PORT: "8080"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quora-app
+  namespace: quora
+  labels:
+    app: quora-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quora-app
+  template:
+    metadata:
+      labels:
+        app: quora-app
+    spec:
+      containers:
+        - name: quora-app
+          # Replace with your Azure Container Registry image before deploying.
+          image: demoquoraacr.azurecr.io/quora-app:v2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: quora-app-config
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quora-app-service
+  namespace: quora
+  labels:
+    app: quora-app
+spec:
+  type: LoadBalancer
+  selector:
+    app: quora-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080

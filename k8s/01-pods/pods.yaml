@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: samplepod
+  labels:
+    app: sampleapp
+spec:
+  containers:
+  - name: samplecontainer
+    image: paulbouwer/hello-kubernetes:1.10
+    ports:
+    - containerPort: 8080

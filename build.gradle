@@ -36,6 +36,7 @@ dependencies {
 	implementation 'org.springframework.kafka:spring-kafka'
 
 	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 tasks.named('test') {
